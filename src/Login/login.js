@@ -9,8 +9,9 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { useState } from 'react';
+import { useState, } from 'react';
 import BackgroundImage from '../Images/fileorbis_cover.jpeg';
+import { useNavigate } from 'react-router-dom';
 
 function Copyright(props) {
   return (
@@ -27,10 +28,14 @@ function Copyright(props) {
 
 const defaultTheme = createTheme();
 
-export default function Login() {
+export default function Login(props) {
+
+  const {setUserInfo} = props;      
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  const navigate = useNavigate();
 
   const handleEmailChange = (e) => {
     setUsername(e.target.value);
@@ -43,25 +48,24 @@ export default function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     
-    const body = JSON.stringify({ username, password });
-    
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json'); 
-    headers.append('x-fo-client-key', '1044d5e7-3b77-40fa-9129-d55ee6d4b7c2'); 
-    headers.append('Accept-Language', 'en');
+    const body = JSON.stringify({ "Username": username, "Password": password });
 
-    const response = await fetch('https://dev5.fileorbis.com/api/v2/account/login', {
+    const response = await fetch('https://localhost:7229/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json', 
       },
-      headers: headers,
       body: body
     });
 
     const data = await response.json();
 
-    console.log('Sunucudan gelen yanit:', data);
+    if(data.Success){
+        setUserInfo(data.Data);
+        navigate("/files/my-workspace");
+    } else {
+        alert(data.Message);
+    }
   };
 
   return (
