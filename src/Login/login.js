@@ -12,6 +12,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useState, } from 'react';
 import BackgroundImage from '../Images/fileorbis_cover.jpeg';
 import { useNavigate } from 'react-router-dom';
+import BASE_URL from '../Constants/Constant.js'
 
 function Copyright(props) {
   return (
@@ -48,13 +49,13 @@ export default function Login(props) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     
-    const body = JSON.stringify({ "Username": username, "Password": password });
+    const body = JSON.stringify({ "username": username, "password": password });
 
-    const response = await fetch('https://localhost:7229/login', {
-      method: 'POST',
+    const response = await fetch(BASE_URL + '/login', {
       headers: {
-        'Content-Type': 'application/json', 
+      'Content-Type': 'application/json'
       },
+      method: 'POST',
       body: body
     });
 
@@ -62,7 +63,7 @@ export default function Login(props) {
 
     if(data.Success){
         setUserInfo(data.Data);
-        navigate("/files/my-workspace");
+        navigate("/My FileOrbis");
     } else {
         alert(data.Message);
     }
