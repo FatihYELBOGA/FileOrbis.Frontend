@@ -42,6 +42,13 @@ function Navbar(props)
     setActiveMenuItem, 
     isItemCreated, 
     setIsItemCreated, 
+    setProgressBar,
+    setFileName,
+    setProgressValue,
+    currentNavbar,
+    setCurrentNavbar,
+    guid,
+    setGuid,
     window 
   } = props;
           
@@ -59,7 +66,11 @@ function Navbar(props)
 
   // when the user clicks the new button, it will work
   const handleNewButtonClick = () => {
-    setNewMenuItem(true);
+    if(currentNavbar == "My FileOrbis"){
+      setNewMenuItem(true);
+    } else {
+      alert("new navbar is only active at 'My FileOrbis'")
+    }
   }
 
   // when the user clicks the any menu item, it will work
@@ -68,12 +79,9 @@ function Navbar(props)
     if(text != null){
       setDirectoryPath("");
       navigate("/" + text);
+      setCurrentNavbar(text);
     }
   };
-
-  const handleProfile = () => {
-
-  }
 
   const handleLogOut = () => {
     setUserInfo(null);
@@ -97,6 +105,7 @@ function Navbar(props)
         onClick={() => {
           setDirectoryPath("");
           navigate("/My FileOrbis");
+          setCurrentNavbar("My FileOrbis")
           setActiveMenuItem(1);
         }} 
       />
@@ -199,10 +208,13 @@ function Navbar(props)
             />
           </div>
           <Typography variant="h6" noWrap component="div" sx={{color:'black'}}>
-            <Link style={{ textDecoration: 'none', color: 'inherit'}} to="/profile" target="_blank">
+            <Link style={{ textDecoration: 'none', color: 'inherit'}} to="/profile">
               <AccountCircleOutlinedIcon fontSize='large' 
                 sx={{cursor: 'pointer'}}
-                onClick={handleProfile}
+                onClick={() => {
+                  setCurrentNavbar("profile");
+                  setActiveMenuItem(null);
+                }}
               />
             </Link>
             <ExitToAppTwoToneIcon fontSize='large' 
@@ -248,7 +260,12 @@ function Navbar(props)
               setNewMenuItem={setNewMenuItem} 
               isItemCreated={isItemCreated} 
               setIsItemCreated={setIsItemCreated}
-              directoryPath={directoryPath} /> : null}
+              setProgressBar={setProgressBar}
+              setFileName={setFileName}
+              setProgressValue={setProgressValue}
+              directoryPath={directoryPath}
+              setGuid={setGuid}
+            /> : null}
           {drawer}
         </Drawer>
       </Box>

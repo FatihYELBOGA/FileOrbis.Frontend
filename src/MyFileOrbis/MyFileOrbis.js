@@ -16,6 +16,12 @@ import StarBorderOutlinedIcon from '@mui/icons-material/StarBorderOutlined';
 import { useNavigate } from 'react-router-dom';
 import KeyboardArrowRightTwoToneIcon from '@mui/icons-material/KeyboardArrowRightTwoTone';
 import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined';
+import Toolbar from '@mui/material/Toolbar';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
+import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
+import AppBar from '@mui/material/AppBar';
+import ProgressBar from '../ProgressBar/ProgressBar.js';
 
 // name, size, last modified date, creation date columns
 const columns = [
@@ -47,6 +53,11 @@ export default function MyFileOrbis(props)
     directoryPath, 
     setDirectoryPath, 
     isItemCreated,
+    progressBar,
+    setProgressBar,
+    fileName,
+    progressValue,
+    guid,
     searchText 
   } = props;  
 
@@ -54,6 +65,8 @@ export default function MyFileOrbis(props)
   const [loading, setLoading] = useState(null); 
   const [selectedItemName, setSelectedItemName] = useState(null);
   const [isFile, setIsFile] = useState(null);
+  const [clicked, setClicked] = useState(false);
+  const [refresh, setRefresh] = useState(false);
 
   const navigate = useNavigate();
   
@@ -68,19 +81,19 @@ export default function MyFileOrbis(props)
     navigate("/My FileOrbis");
   }
 
-  const getToken = async () => {
+  async function getDownloadToken(){
     try {
       const body = JSON.stringify
       (
         {
-          "model": {
+          "requestModel": {
             "dType": 0,
             "directoryPath": directoryPath
           },
           "itemNameCollection": [
             selectedItemName
           ]
-      }
+        }
       );
       const response = await fetch(BASE_URL + '/file-system/download/token/create', {
         method: 'POST',
@@ -92,14 +105,50 @@ export default function MyFileOrbis(props)
       });
 
       const data = await response.json();
-      return data.Success;
+
+      if (data.Success) {
+        var token = data.Data;
+        return token;
+    }
+     else {
+      alert("Success: " + data.Success + ", Status: " + data.Status);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  } 
+  }
 
- 
+  const downloadItem = async (token) => {
+    try {
+      alert("the item will download now!");
+      const response = await fetch(BASE_URL + '/file-system/download/token?token=' + token, {
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer ' + userInfo.Token
+          }
+      });
+  
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+          
+        isFile ? link.setAttribute('download', selectedItemName) : link.setAttribute('download', selectedItemName + ".zip");
+          
+        document.body.appendChild(link);          
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        alert("HTTP status: " + response.status);
+      }
+    } catch (error) {
+      alert("Error message: " + error);
+    }
+  }
+
   const handleRowDoubleClick = async () => {
+    setClicked(false);
     if(!isFile){
       var fullPath = selectedItemName;
       if(directoryPath != ""){
@@ -107,16 +156,69 @@ export default function MyFileOrbis(props)
       }
       setDirectoryPath(fullPath);
       navigate("/My FileOrbis/" + fullPath);
-    } else {
-      // firstly, get the token of the file
-      // secondly, get the bytes of the file with this token
-      var token = getToken();
     }
   }
 
   const handleRowClick = (itemName, isFile) => {
+    if(selectedItemName != null) { 
+      if(selectedItemName != itemName){
+        if(document.getElementById(selectedItemName) != null){
+          document.getElementById(selectedItemName).style.backgroundColor = "";
+        }
+      }
+    }
+    if(selectedItemName != itemName){
+      document.getElementById(itemName).style.backgroundColor = "#A9DDFF";
+      setClicked(true);
+    } 
+    else {
+      if(document.getElementById(itemName).style.backgroundColor != ""){
+        document.getElementById(itemName).style.backgroundColor = "";
+      } else {
+        document.getElementById(itemName).style.backgroundColor = "#A9DDFF";
+      }
+      setClicked(!clicked);
+    }
+
     setSelectedItemName(itemName);
     setIsFile(isFile);
+  }
+
+  const handleDelete = async () => {
+    try {
+      const body = JSON.stringify
+      (
+        {
+          "requestModel": {
+            "dType": 0,
+            "directoryPath": directoryPath
+          },
+          "itemNameCollection": [
+            selectedItemName
+          ]
+        }
+      );
+      const response = await fetch(BASE_URL + '/file-system/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + userInfo.Token
+        },
+        body: body
+      });
+
+      const data = await response.json();
+
+      if(!data.Success) {
+        alert("Success: " + data.Success + ", Status: " + data.Status);
+      } else {
+        alert("the item successfully deleted!");
+        setRefresh(!refresh);
+        setClicked(!clicked);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   }
 
   useEffect(() => {
@@ -137,7 +239,8 @@ export default function MyFileOrbis(props)
         const data = await response.json();
   
         if (data.Success) {
-          setCloudItems(data.Data.CloudItems);
+          const filteredCloudItems = data.Data.CloudItems.filter(item => item.ItemName.includes(searchText));
+          setCloudItems(filteredCloudItems);
         } else {
           alert("Success: " + data.Data.Success + ", Status: " + data.Data.Status);
         }
@@ -148,7 +251,7 @@ export default function MyFileOrbis(props)
       setLoading(false);
     };
     fetchData();
-  }, [directoryPath, isItemCreated]); 
+  }, [directoryPath, isItemCreated, refresh, searchText]); 
   
   return (
     <div style={{marginTop: "25px"}}>
@@ -185,6 +288,51 @@ export default function MyFileOrbis(props)
           }
         })
       }
+      <AppBar
+        position='relative'
+        sx={{
+          width: { sm: `calc(100%)` },
+          height: 40,
+          backgroundColor: "#EEEEEE",
+          borderRadius: 4,
+          marginTop: '15px',
+          color: "black",
+          justifyContent: 'center',
+          marginTop: "14px",
+          marginBottom: "14px"
+        }}
+      >   
+        {
+          clicked ? 
+          <Toolbar sx={{ display: 'flex', alignItems: 'center'}}>
+            <CloseTwoToneIcon 
+              sx={{cursor:'pointer', marginRight: '10px' }} 
+              onClick={()=>{
+                setClicked(false);
+                document.getElementById(selectedItemName).style.backgroundColor = "";
+              }}
+            />  
+            <span style={{cursor: 'default', fontSize: 15}}>1 selected</span>
+            <DownloadOutlinedIcon 
+              id="download-button"
+              sx={{marginLeft:'50px', marginRight: '25px', cursor:'pointer' }} 
+              onClick={async () => {
+                var downloadToken = await getDownloadToken();
+                await downloadItem(downloadToken);
+              }}
+            />
+            <DeleteOutlineIcon 
+              id="trash-button"
+              sx={{cursor:'pointer'}} 
+              onClick={handleDelete}
+            />
+          </Toolbar> : 
+          // constant "no selected item" text 
+          <Toolbar sx={{ display: 'flex'}}>
+            <span style={{cursor: 'default', fontSize: 15}}>no selected item</span>
+          </Toolbar>
+        }
+      </AppBar>
       {
         loading ?
         <Box
@@ -211,8 +359,8 @@ export default function MyFileOrbis(props)
           <Typography sx={{ fontSize: 15, marginTop: 3}}>Empty Folder</Typography>
           <Typography sx={{ fontSize: 13}}>There are no folders to choose from here</Typography>
         </Box> :  
-        <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: "25px" }}>
-        <TableContainer sx={{ maxHeight: 480 }}>
+        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <TableContainer sx={{ maxHeight: 400 }}>
           <Table stickyHeader aria-label="sticky table">
             <TableHead>
               <TableRow>
@@ -293,6 +441,17 @@ export default function MyFileOrbis(props)
           </Table>
         </TableContainer>
         </Paper>
+      }
+      {
+        progressBar ? 
+        <ProgressBar 
+          value={progressValue} 
+          fileName={fileName}
+          setProgressBar={setProgressBar}  
+          guid={guid}
+          userInfo={userInfo}
+        /> :
+        null
       }
     </div>  
   );

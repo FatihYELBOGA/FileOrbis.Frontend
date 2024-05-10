@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
+import Profile from './Profile/Profile.js';
 
 function App() {
 
@@ -17,6 +18,11 @@ function App() {
   const [searchText, setSearchText] = useState("");
   const [activeMenuItem, setActiveMenuItem] = useState(null);
   const [isItemCreated, setIsItemCreated] = useState(false);
+  const [progressBar, setProgressBar] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [progressValue, setProgressValue] = useState(0);
+  const [currentNavbar, setCurrentNavbar] = useState("");
+  const [guid, setGuid] = useState("");
 
   if(userInfo == null){
     return(
@@ -29,7 +35,7 @@ function App() {
       </div>
     )
   }
-  else{
+  else {
     return(
       <Box sx={{ display: 'flex' }}>
         <BrowserRouter>
@@ -44,6 +50,12 @@ function App() {
             setActiveMenuItem={setActiveMenuItem}
             isItemCreated={isItemCreated}
             setIsItemCreated={setIsItemCreated}
+            setProgressBar={setProgressBar}
+            setFileName={setFileName}
+            setProgressValue={setProgressValue}
+            currentNavbar={currentNavbar}
+            setCurrentNavbar={setCurrentNavbar}
+            setGuid={setGuid}
           />
           {/* (box and toolbar component) it represents the remaining free space outside the navbar */}
           <Box
@@ -61,6 +73,11 @@ function App() {
                     directoryPath={directoryPath}
                     setDirectoryPath={setDirectoryPath}
                     isItemCreated={isItemCreated}
+                    progressBar={progressBar}
+                    setProgressBar={setProgressBar}
+                    fileName={fileName}
+                    progressValue={progressValue}
+                    guid={guid}
                     searchText={searchText} 
                   />
                 } 
@@ -97,8 +114,16 @@ function App() {
                     searchText={searchText} 
                   />
                 } 
-              />                                    
-          </Routes>
+              />       
+              <Route 
+                exact path={'/profile'}  
+                element={
+                  <Profile 
+                    userInfo={userInfo.UserInfo} 
+                  />
+                } 
+              />                                                        
+            </Routes>
           </Box>
         </BrowserRouter>
       </Box>
