@@ -40,20 +40,20 @@ function Navbar(props)
     setSearchText, 
     activeMenuItem, 
     setActiveMenuItem, 
-    isItemCreated, 
     setIsItemCreated, 
-    setProgressBar,
-    setFileName,
-    setProgressValue,
+    setSelectedFiles,
     currentNavbar,
     setCurrentNavbar,
-    guid,
-    setGuid,
+    newMenuItem,
+    setNewMenuItem,
+    setSelectedFilesLength,
+    setIsOverwrite,
+    dialogState,
+    setDialogState,
     window 
   } = props;
           
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [newMenuItem, setNewMenuItem] = useState(false); 
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -258,13 +258,13 @@ function Navbar(props)
               userInfo={userInfo}
               setActiveMenuItem={setActiveMenuItem} 
               setNewMenuItem={setNewMenuItem} 
-              isItemCreated={isItemCreated} 
               setIsItemCreated={setIsItemCreated}
-              setProgressBar={setProgressBar}
-              setFileName={setFileName}
-              setProgressValue={setProgressValue}
+              setSelectedFiles={setSelectedFiles}
               directoryPath={directoryPath}
-              setGuid={setGuid}
+              setSelectedFilesLength={setSelectedFilesLength}
+              setIsOverwrite={setIsOverwrite}
+              dialogState={dialogState}
+              setDialogState={setDialogState}
             /> : null}
           {drawer}
         </Drawer>

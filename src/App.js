@@ -6,10 +6,12 @@ import CorporateFileSystem from './CorporateFileSystem/CorporateFileSystem.js';
 import PrivateNetworkFolders from './PrivateNetworkFolders/PrivateNetworkFolders.js';
 import TeamFolders from './TeamFolders/TeamFolders.js'; 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Profile from './Profile/Profile.js';
+import ProgressBar from './ProgressBar/ProgressBar.js';
+import { useEffect, useState } from 'react';
+import Typography from '@mui/material/Typography';
 
 function App() {
 
@@ -18,18 +20,33 @@ function App() {
   const [searchText, setSearchText] = useState("");
   const [activeMenuItem, setActiveMenuItem] = useState(null);
   const [isItemCreated, setIsItemCreated] = useState(false);
-  const [progressBar, setProgressBar] = useState(false);
-  const [fileName, setFileName] = useState("");
-  const [progressValue, setProgressValue] = useState(0);
   const [currentNavbar, setCurrentNavbar] = useState("");
-  const [guid, setGuid] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [newMenuItem, setNewMenuItem] = useState(false); 
+  const [selectedFilesLength, setSelectedFilesLength] = useState(0);
+  const [isOverwrite, setIsOverwrite] = useState(null);
+  const [dialogState, setDialogState] = useState(false);
+
+  useEffect(() => {
+    if (selectedFiles.length === selectedFilesLength) {
+      setSelectedFiles([]);
+    }
+  }, [selectedFilesLength]); 
 
   if(userInfo == null){
     return(
       <div>
         <BrowserRouter>
           <Routes>
-            <Route exact path='/' element={<Login setUserInfo={setUserInfo} />} />
+            <Route 
+              exact path='/' 
+              element={
+                <Login 
+                  setUserInfo={setUserInfo} 
+                  setCurrentNavbar={setCurrentNavbar} 
+                />
+              } 
+            />
           </Routes>
         </BrowserRouter>
       </div>
@@ -48,14 +65,16 @@ function App() {
             setSearchText={setSearchText} 
             activeMenuItem={activeMenuItem} 
             setActiveMenuItem={setActiveMenuItem}
-            isItemCreated={isItemCreated}
             setIsItemCreated={setIsItemCreated}
-            setProgressBar={setProgressBar}
-            setFileName={setFileName}
-            setProgressValue={setProgressValue}
+            setSelectedFiles={setSelectedFiles}
             currentNavbar={currentNavbar}
             setCurrentNavbar={setCurrentNavbar}
-            setGuid={setGuid}
+            newMenuItem={newMenuItem}
+            setNewMenuItem={setNewMenuItem}
+            setSelectedFilesLength={setSelectedFilesLength}
+            setIsOverwrite={setIsOverwrite}
+            dialogState={dialogState}
+            setDialogState={setDialogState}
           />
           {/* (box and toolbar component) it represents the remaining free space outside the navbar */}
           <Box
@@ -73,11 +92,6 @@ function App() {
                     directoryPath={directoryPath}
                     setDirectoryPath={setDirectoryPath}
                     isItemCreated={isItemCreated}
-                    progressBar={progressBar}
-                    setProgressBar={setProgressBar}
-                    fileName={fileName}
-                    progressValue={progressValue}
-                    guid={guid}
                     searchText={searchText} 
                   />
                 } 
@@ -124,6 +138,45 @@ function App() {
                 } 
               />                                                        
             </Routes>
+            {
+            selectedFiles.length > 0 && (
+              <Box 
+                sx={{
+                  position: 'relative',
+                  border: '1px solid black',
+                  borderRadius: 3,
+                  marginTop: 5,
+                  padding: 2,
+                  backgroundColor: "#F6F6F6"
+                }}
+              >
+                <Typography
+                  sx={{
+                    position: 'absolute',
+                    top: -20,
+                    left: 10,
+                    backgroundColor: 'white',
+                    padding: '0 5px',
+                  }}
+                >
+                  Uploading Details
+                </Typography>
+
+                {selectedFiles.map((file) => (
+                  <ProgressBar 
+                    key={file.name}
+                    file={file}
+                    userInfo={userInfo}
+                    directoryPath={directoryPath}
+                    setIsItemCreated={setIsItemCreated}
+                    setNewMenuItem={setNewMenuItem}
+                    setSelectedFilesLength={setSelectedFilesLength}
+                    isOverwrite={isOverwrite}
+                  />
+                ))}
+              </Box>
+            )
+          }
           </Box>
         </BrowserRouter>
       </Box>

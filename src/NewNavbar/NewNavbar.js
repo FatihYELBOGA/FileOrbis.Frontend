@@ -9,11 +9,12 @@ import Button from '@mui/material/Button';
 import { useState } from 'react';
 import NewFolderForm from './NewFolderForm';
 import { useRef } from 'react';
-import { Await, useNavigate } from 'react-router-dom';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import FilePresentOutlinedIcon from '@mui/icons-material/FilePresentOutlined';
-import BASE_URL from '../Constants/Constant';
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
+import BASE_URL from '../Constants/Constant.js';
+import Dialog from '../Dialog/Dialog.js';
 
 export default function NewNavbar(props) {
 
@@ -21,21 +22,22 @@ export default function NewNavbar(props) {
     userInfo,
     setActiveMenuItem, 
     setNewMenuItem, 
-    isItemCreated, 
     setIsItemCreated,
-    setProgressBar,
-    setFileName,
-    setProgressValue,
+    setSelectedFiles,
     directoryPath,
-    setGuid
+    setSelectedFilesLength,
+    setIsOverwrite,
+    dialogState,
+    setDialogState
   } = props;
 
   const [hovered, setHovered] = useState(null);
-  const [newFolderClick, setNewFolderClick] = useState(false);
+  const [newFolderClick, setNewFolderClick] = useState(false);  
+  const [failedUploads, setFailedUploads] = useState([]);
+  const [currentFiles, setCurrentFiles] = useState([]);
+  const [modifiedFiles, setModifiedFiles] = useState([]);
   const inputRef = useRef(null);
 
-  const navigate = useNavigate();
- 
   const handleNewFolderMenu = () => {
     setNewFolderClick(true);
   }
@@ -44,190 +46,69 @@ export default function NewNavbar(props) {
     inputRef.current.click();
   }
 
-  function generateGuid() {
-    return uuidv4();
-  }
-
-  async function uploadControl(file, guid){
+  async function uploadControl(file) {
     try {
-      const body = JSON.stringify
-      (
-        {
-          "requestModel": {
-            "dType": 0,
-            "directoryPath": directoryPath
-          },
-          "uploadItemCollection": [
-            {
-              "itemName": file.name,
-              "itemSize": file.size,
-              "itemId": guid
-            }
-          ]
-        }
-      );
-      const response = await fetch(BASE_URL + '/file-system/upload/control', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + userInfo.Token
+      const guid = uuidv4();
+      const body = JSON.stringify({
+        "requestModel": {
+          "dType": 0,
+          "directoryPath": directoryPath
         },
-        body: body
-      });
-
-      const data = await response.json();
-
-      if (data.Success) {
-        alert("the file will upload now!");
-        return true;
-      } else {
-        alert("Success: " + data.Success + ", Status: " + data.Message);
-      }
-      return false;
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      return false;
-    }
-  }
-
-  async function upload(file, guid) {
-    try {
-      const MAX_CHUNK_SIZE = 1024 * 1024; // 1MB
-      const fileSize = file.size;
-      if (fileSize > MAX_CHUNK_SIZE) {
-        const totalChunks = Math.ceil(fileSize / MAX_CHUNK_SIZE);
-        let start = 0;
-        let end = MAX_CHUNK_SIZE;
-        for (let i = 0; i < totalChunks; i++) {
-          const chunk = file.slice(start, end);
-          const formData = new FormData();
-          formData.append("DType", 0);
-          formData.append("DirectoryPath", directoryPath);
-          formData.append("FolderId", "00000000-0000-0000-0000-000000000000");
-          // formData.append("ItemRelativePath", null);
-          formData.append("ItemName", file.name);
-          formData.append("ItemId", guid);
-          formData.append("ItemSize", fileSize);
-          formData.append("file", chunk);
-          // formData.append("Overwrite", null);
-          // formData.append("Classification", null);
-  
-          const response = await fetch(BASE_URL + '/file-system/upload', {
-            method: 'POST',
-            headers: {
-              'Authorization': 'Bearer ' + userInfo.Token
-            },
-            body: formData
-          });
-  
-          const data = await response.json();
-          if (data.FileSystemOperationStatus === 103) {
-            setProgressValue(100);
-            return true;
-          } 
-          else if (data.FileSystemOperationStatus !== 101) {
-            alert("File System Operation Status: " + data.FileSystemOperationStatus + ", Status: " + data.Message);
-            return false;
+        "uploadItemCollection": [
+          {
+            "itemName": file.name,
+            "itemSize": file.size,
+            "itemId": guid
           }
-  
-          start = end;
-          end = Math.min(start + MAX_CHUNK_SIZE, fileSize);
+        ]
+      });
 
-          const progress = ((i + 1) / totalChunks) * 100;
-          setProgressValue(progress);
-        }
-      } else {
-        const formData = new FormData();
-        formData.append("DType", 0);
-        formData.append("DirectoryPath", directoryPath);
-        formData.append("FolderId", "00000000-0000-0000-0000-000000000000");
-        // formData.append("ItemRelativePath", null);
-        formData.append("ItemName", file.name);
-        formData.append("ItemId", guid);
-        formData.append("ItemSize", file.size);
-        formData.append("file", file);
-        // formData.append("Overwrite", null);
-        // formData.append("Classification", null);
-  
-        const response = await fetch(BASE_URL + '/file-system/upload', {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + userInfo.Token
-          },
-          body: formData
-        });
-  
-        const data = await response.json();
-        if (data.FileSystemOperationStatus === 103) {
-          setProgressValue(100);
-          return true;
-        } 
-        else {
-          alert("File System Operation Status: " + data.FileSystemOperationStatus + ", Status: " + data.Message);
-        }
-      }
-      return false;
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      return false;
-    }
-  }
-
-  async function uploadResult(guid){
-    try {
-      const body = JSON.stringify
-      (
-        {
-          "itemId": guid
-        }
-      );
-      const response = await fetch(BASE_URL + '/file-system/upload/result', {
-        method: 'POST',
+      const response = await axios.post(BASE_URL + '/file-system/upload/control', body, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + userInfo.Token
-        },
-        body: body
+        }
       });
 
-      const data = await response.json();
-
-      if (data.Success) {
+      if (response.data.Success) {
         return true;
       } else {
-        alert("Success: " + data.Success + ", Status: " + data.Message);
+        return response.data.FailedItems[0].Item.SuggestedName;
       }
-      return false;
     } catch (error) {
-      console.error('Error fetching data:', error);
+      if (axios.isCancel(error)) {
+        console.log('Upload control aborted');
+      } else {
+        console.error('Error fetching data:', error);
+      }
       return false;
     }
   }
 
   const handleFileSelect = async (event) => {
-    const file = event.target.files[0];
-    setFileName(file.name);
+    const files = Array.from(event.target.files);
+    setCurrentFiles(files);
 
-    var guid = generateGuid();
-    setGuid(guid);
-    var canUpload = await uploadControl(file, guid);
-    if(canUpload){
-      setProgressValue(0);
-      setNewMenuItem(false);
-      setProgressBar(true);
-      var isUploaded = await upload(file, guid);
-      
-      // to display the "virus scanning message", wait 1.5 seconds
-      setTimeout(async () => {
-        setProgressBar(false);
-        if(isUploaded){
-          var uploadDone = await uploadResult(guid);
-          if(uploadDone){
-            alert("The file uploaded successfully!");
-            setIsItemCreated(!isItemCreated);
-          }
+    const updatedFiles = [];
+    const failedUploads = [];
+    for (const file of files) {
+        const success = await uploadControl(file);
+        if (success != true) {      
+          const updatedFile = new File([file], success, { type: file.type });
+          updatedFiles.push(updatedFile);
+          failedUploads.push(file.name);
+        } else {
+          updatedFiles.push(file);
         }
-      }, 1500);
+    }
+    setModifiedFiles(updatedFiles);
+
+    if (failedUploads.length > 0) {
+      setFailedUploads(failedUploads);
+      setDialogState(true);
+    } else {
+      setSelectedFiles(files);
+      setSelectedFilesLength(0);
     }
   };
 
@@ -243,7 +124,6 @@ export default function NewNavbar(props) {
                 setActiveMenuItem={setActiveMenuItem} 
                 setNewFolderClick={setNewFolderClick} 
                 setNewMenuItem={setNewMenuItem} 
-                isItemCreated={isItemCreated} 
                 setIsItemCreated={setIsItemCreated} 
                 directoryPath={directoryPath}
               /> 
@@ -269,6 +149,7 @@ export default function NewNavbar(props) {
                   ref={inputRef}
                   style={{ display: 'none' }}
                   onChange={handleFileSelect}
+                  multiple={true}
                 />
                 <MenuItem 
                   id='new-file'
@@ -297,6 +178,27 @@ export default function NewNavbar(props) {
               </MenuList>
           }
         </Paper>      
+        {
+          dialogState
+            ? <Dialog 
+                title="Overwrite Files"               
+                body={
+                  <>
+                    Do you want to overwrite the existing files?
+                    <br />
+                    "{failedUploads.join(', ')}"
+                  </>
+                }
+                dialogState={dialogState} 
+                setDialogState={setDialogState} 
+                setIsOverwrite={setIsOverwrite}
+                setSelectedFiles={setSelectedFiles}
+                setSelectedFilesLength={setSelectedFilesLength}
+                currentFiles={currentFiles}
+                modifiedFiles={modifiedFiles}
+              />
+            : null
+        }
       </div>
     </div>
   );

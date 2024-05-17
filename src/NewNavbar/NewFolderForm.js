@@ -15,7 +15,6 @@ function NewFolderForm(props) {
     setActiveMenuItem, 
     setNewFolderClick, 
     setNewMenuItem, 
-    isItemCreated, 
     setIsItemCreated,
     directoryPath
   } = props
@@ -55,16 +54,8 @@ function NewFolderForm(props) {
 
       if (data.Success) {
         alert("the folder was successfully added!");
-        setNewMenuItem(false);
-
-        // change createdFolder value
-        if(isItemCreated){
-          setIsItemCreated(false);
-        }
-        else{
-          setIsItemCreated(true);
-        } 
-        
+        setNewMenuItem(false);          
+        setIsItemCreated(prevState => !prevState);
         setActiveMenuItem(1);
         navigate("/My FileOrbis/" + directoryPath);
       } else {

@@ -21,7 +21,6 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
 import AppBar from '@mui/material/AppBar';
-import ProgressBar from '../ProgressBar/ProgressBar.js';
 
 // name, size, last modified date, creation date columns
 const columns = [
@@ -53,12 +52,7 @@ export default function MyFileOrbis(props)
     directoryPath, 
     setDirectoryPath, 
     isItemCreated,
-    progressBar,
-    setProgressBar,
-    fileName,
-    progressValue,
-    guid,
-    searchText 
+    searchText
   } = props;  
 
   const [cloudItems, setCloudItems] = useState([]);
@@ -224,6 +218,8 @@ export default function MyFileOrbis(props)
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setSelectedItemName(null);
+      setClicked(false);
   
       try {
         const body = JSON.stringify({ "DType": 0, "DirectoryPath": directoryPath });
@@ -360,7 +356,7 @@ export default function MyFileOrbis(props)
           <Typography sx={{ fontSize: 13}}>There are no folders to choose from here</Typography>
         </Box> :  
         <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 400 }}>
+        <TableContainer sx={{ maxHeight: '400px', overflow: 'auto' }}>
           <Table stickyHeader aria-label="sticky table">
             <TableHead>
               <TableRow>
@@ -441,17 +437,6 @@ export default function MyFileOrbis(props)
           </Table>
         </TableContainer>
         </Paper>
-      }
-      {
-        progressBar ? 
-        <ProgressBar 
-          value={progressValue} 
-          fileName={fileName}
-          setProgressBar={setProgressBar}  
-          guid={guid}
-          userInfo={userInfo}
-        /> :
-        null
       }
     </div>  
   );

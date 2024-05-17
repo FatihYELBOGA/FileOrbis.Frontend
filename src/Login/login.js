@@ -31,7 +31,7 @@ const defaultTheme = createTheme();
 
 export default function Login(props) {
 
-  const {setUserInfo} = props;      
+  const {setUserInfo, setCurrentNavbar} = props;      
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -63,6 +63,7 @@ export default function Login(props) {
 
     if(data.Success){
         setUserInfo(data.Data);
+        setCurrentNavbar("My FileOrbis");
         navigate("/My FileOrbis");
     } else {
         alert(data.Message);
