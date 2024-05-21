@@ -21,6 +21,8 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
 import AppBar from '@mui/material/AppBar';
+import AddLinkIcon from '@mui/icons-material/AddLink';
+import Link from '../Link/Link.js';
 
 // name, size, last modified date, creation date columns
 const columns = [
@@ -61,6 +63,7 @@ export default function MyFileOrbis(props)
   const [isFile, setIsFile] = useState(null);
   const [clicked, setClicked] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  const [linkMenu, setLinkMenu] = useState(false);
 
   const navigate = useNavigate();
   
@@ -215,6 +218,10 @@ export default function MyFileOrbis(props)
     }
   }
 
+  const handleLink = async () => {
+    setLinkMenu(true);
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -250,54 +257,61 @@ export default function MyFileOrbis(props)
   }, [directoryPath, isItemCreated, refresh, searchText]); 
   
   return (
-    <div style={{marginTop: "25px"}}>
-      {/* constant "my fileorbis" header path */}
-      <Typography 
-        id="my-fileorbis" 
-        sx={{ fontSize: 15, display: "inline", cursor: 'pointer' }}
-        onClick={() => {handleMainFolderNameClick();}}
-      >
-        My FileOrbis
-      </Typography>
-      {
-        directoryPath != "" ? 
-          <KeyboardArrowRightTwoToneIcon sx={{ verticalAlign: 'middle' }} /> : null
-      }
-      {/* create each path (breadcrumbs) */}
-      {
-        directoryPath.split("/").map((p, index) => {
-          const eachFolderPath = directoryPath.split("/").slice(0, index+1).join("/");
-          if(eachFolderPath !== ""){
-            return (
-              <div style={{ display: 'inline-block' }}>
-                <Typography 
-                  key={eachFolderPath}
-                  id={eachFolderPath} 
-                  onClick={handleBreadCrumbs} 
-                  sx={{ fontSize: 15, display: "inline", cursor: 'pointer' }}
-                >
-                  {p} 
-                </Typography>
-                {index !== directoryPath.split("/").length - 1 && <KeyboardArrowRightTwoToneIcon sx={{ verticalAlign: 'middle'}} />}
-              </div>
-            )  
+      linkMenu 
+        ? 
+          <Link
+            setLinkMenu={setLinkMenu}
+            selectedItemName={selectedItemName}
+          />
+        : 
+        <div style={{marginTop: "25px"}}>
+          {/* constant "my fileorbis" header path */}
+          <Typography 
+            id="my-fileorbis" 
+            sx={{ fontSize: 15, display: "inline", cursor: 'pointer' }}
+            onClick={() => {handleMainFolderNameClick();}}
+          >
+            My FileOrbis
+          </Typography>
+          {
+            directoryPath != "" ? 
+              <KeyboardArrowRightTwoToneIcon sx={{ verticalAlign: 'middle' }} /> : null
           }
-        })
-      }
-      <AppBar
-        position='relative'
-        sx={{
-          width: { sm: `calc(100%)` },
-          height: 40,
-          backgroundColor: "#EEEEEE",
-          borderRadius: 4,
-          marginTop: '15px',
-          color: "black",
-          justifyContent: 'center',
-          marginTop: "14px",
-          marginBottom: "14px"
-        }}
-      >   
+          {/* create each path (breadcrumbs) */}
+          {
+            directoryPath.split("/").map((p, index) => {
+              const eachFolderPath = directoryPath.split("/").slice(0, index+1).join("/");
+              if(eachFolderPath !== ""){
+                return (
+                  <div style={{ display: 'inline-block' }}>
+                    <Typography 
+                      key={eachFolderPath}
+                      id={eachFolderPath} 
+                      onClick={handleBreadCrumbs} 
+                      sx={{ fontSize: 15, display: "inline", cursor: 'pointer' }}
+                    >
+                      {p} 
+                    </Typography>
+                    {index !== directoryPath.split("/").length - 1 && <KeyboardArrowRightTwoToneIcon sx={{ verticalAlign: 'middle'}} />}
+                  </div>
+                )  
+              }
+            })
+          }
+          <AppBar
+            position='relative'
+            sx={{
+              width: { sm: `calc(100%)` },
+              height: 40,
+              backgroundColor: "#EEEEEE",
+              borderRadius: 4,
+              marginTop: '15px',
+              color: "black",
+              justifyContent: 'center',
+              marginTop: "14px",
+              marginBottom: "14px"
+            }}
+          >   
         {
           clicked ? 
           <Toolbar sx={{ display: 'flex', alignItems: 'center'}}>
@@ -319,8 +333,13 @@ export default function MyFileOrbis(props)
             />
             <DeleteOutlineIcon 
               id="trash-button"
-              sx={{cursor:'pointer'}} 
+              sx={{marginRight: '25px', cursor:'pointer' }} 
               onClick={handleDelete}
+            />
+            <AddLinkIcon 
+              id="link-button"
+              sx={{cursor:'pointer'}} 
+              onClick={handleLink}
             />
           </Toolbar> : 
           // constant "no selected item" text 

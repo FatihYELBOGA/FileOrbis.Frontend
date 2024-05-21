@@ -114,7 +114,10 @@ export default function ProgressBar(props) {
         formData.append("ItemId", guid);
         formData.append("ItemSize", file.size);
         formData.append("file", file);
-        formData.append("Overwrite", isOverwrite.toString());
+
+        if(isOverwrite != null){
+          formData.append("Overwrite", isOverwrite.toString());
+        }
 
         const response = await axios.post(BASE_URL + '/file-system/upload', formData, {
           headers: {
