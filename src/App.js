@@ -139,41 +139,41 @@ function App() {
               />                                                        
             </Routes>
             {
-            selectedFiles.length > 0 && (
-              <Box 
-                sx={{
-                  position: 'relative',
-                  border: '1px solid black',
-                  borderRadius: 3,
-                  marginTop: 5,
-                  padding: 2,
-                  backgroundColor: "#F6F6F6"
-                }}
-              >
-                <Typography
+              selectedFiles.length > 0 && (
+                <Box 
                   sx={{
-                    position: 'absolute',
-                    top: -20,
-                    left: 10,
-                    backgroundColor: 'white',
-                    padding: '0 5px',
+                    position: 'relative',
+                    border: '1px solid black',
+                    borderRadius: 3,
+                    marginTop: 5,
+                    padding: 2,
+                    backgroundColor: "#F6F6F6"
                   }}
                 >
-                  Uploading Details
-                </Typography>
+                  <Typography
+                    sx={{
+                      position: 'absolute',
+                      top: -20,
+                      left: 10,
+                      backgroundColor: 'white',
+                      padding: '0 5px',
+                    }}
+                  >
+                    Uploading Details
+                  </Typography>
 
-                {selectedFiles.map((file) => (
-                  <ProgressBar 
-                    key={file.name}
-                    file={file}
-                    userInfo={userInfo}
-                    directoryPath={directoryPath}
-                    setIsItemCreated={setIsItemCreated}
-                    setNewMenuItem={setNewMenuItem}
-                    setSelectedFilesLength={setSelectedFilesLength}
-                    isOverwrite={isOverwrite}
-                  />
-                ))}
+                  {selectedFiles.map((file) => (
+                    <ProgressBar 
+                      key={file.name}
+                      file={file}
+                      userInfo={userInfo}
+                      directoryPath={directoryPath}
+                      setIsItemCreated={setIsItemCreated}
+                      setNewMenuItem={setNewMenuItem}
+                      setSelectedFilesLength={setSelectedFilesLength}
+                      isOverwrite={isOverwrite}
+                    />
+                  ))}
               </Box>
             )
           }

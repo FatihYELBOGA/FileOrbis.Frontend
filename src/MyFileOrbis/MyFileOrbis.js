@@ -262,6 +262,10 @@ export default function MyFileOrbis(props)
           <Link
             setLinkMenu={setLinkMenu}
             selectedItemName={selectedItemName}
+            setClicked={setClicked}
+            userInfo={userInfo}
+            directoryPath={directoryPath}
+            isFile={isFile}
           />
         : 
         <div style={{marginTop: "25px"}}>
